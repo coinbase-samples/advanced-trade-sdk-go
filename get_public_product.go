@@ -49,8 +49,8 @@ type GetPublicProductResponse struct {
 	TradingDisabled           bool                     `json:"trading_disabled"`
 	AuctionMode               bool                     `json:"auction_mode"`
 	ProductType               string                   `json:"product_type"`
-	QuoteCurrencyID           string                   `json:"quote_currency_id"`
-	BaseCurrencyID            string                   `json:"base_currency_id"`
+	QuoteCurrencyId           string                   `json:"quote_currency_id"`
+	BaseCurrencyId            string                   `json:"base_currency_id"`
 	FCMSessionDetails         SessionDetails           `json:"fcm_trading_session_details"`
 	MidMarketPrice            string                   `json:"mid_market_price"`
 	Alias                     string                   `json:"alias"`
