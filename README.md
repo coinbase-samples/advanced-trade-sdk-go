@@ -33,7 +33,7 @@ There are convenience functions to read the credentials as an environment variab
 ```
 {
   "accessKey": "",
-  "privatePemKey": "",
+  "privatePemKey": ""
 }
 ```
 
