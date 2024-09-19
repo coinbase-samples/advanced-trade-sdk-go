@@ -8,6 +8,8 @@
 The *Advanced Trade Go SDK* is a sample library that demonstrates the structure of a [Coinbase Advanced Trade](https://www.coinbase.com/advanced-trade/) driver for
 the [REST APIs](https://docs.cloud.coinbase.com/advanced-trade/docs/welcome).
 
+Coinbase Advanced Trade offers a comprehensive API for traders, providing access to real-time market data, order management, and execution. Elevate your trading strategies and develop sophisticated solutions using our powerful tools and features.
+
 ## License
 
 The *Advanced Trade Go SDK* sample library is free and open source and released under the [Apache License, Version 2.0](LICENSE).
