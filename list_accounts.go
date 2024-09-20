@@ -42,7 +42,7 @@ func (c Client) ListAccounts(
 
 	response := &ListAccountsResponse{Request: request}
 
-	if err := get(ctx, c, path, queryParams, request, response); err != nil {
+	if err := getPrivate(ctx, c, path, queryParams, request, response); err != nil {
 		return nil, err
 	}
 

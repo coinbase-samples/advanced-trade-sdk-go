@@ -52,7 +52,7 @@ func (c Client) GetPublicProductCandles(
 
 	queryParams = appendQueryParam(queryParams, "end", request.End)
 
-	if err := get(ctx, c, path, queryParams, request, response); err != nil {
+	if err := getPublic(ctx, c, path, queryParams, request, response); err != nil {
 		return nil, err
 	}
 
