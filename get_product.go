@@ -72,7 +72,7 @@ func (c Client) GetProduct(
 
 	response := &GetProductResponse{Request: request}
 
-	if err := get(ctx, c, path, emptyQueryParams, request, response); err != nil {
+	if err := getPrivate(ctx, c, path, emptyQueryParams, request, response); err != nil {
 		return nil, err
 	}
 

@@ -40,7 +40,7 @@ func (c Client) GetPublicProductBook(
 
 	response := &GetPublicProductBookResponse{Request: request}
 
-	if err := get(ctx, c, path, emptyQueryParams, request, response); err != nil {
+	if err := getPublic(ctx, c, path, emptyQueryParams, request, response); err != nil {
 		return nil, err
 	}
 
