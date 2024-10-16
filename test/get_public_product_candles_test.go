@@ -14,35 +14,32 @@
  * limitations under the License.
  */
 
-package adv
+package test
 
 import (
 	"context"
-	"fmt"
+	adv "github.com/coinbase-samples/advanced-trade-sdk-go"
+	"net/http"
+	"testing"
 	"time"
 )
 
-type GetServerTimeRequest struct{}
+func TestGetPublicProductCandles(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-type GetServerTimeResponse struct {
-	Iso          time.Time             `json:"iso"`
-	EpochSeconds string                `json:"epochSeconds"`
-	EpochMillis  string                `json:"epochMillis"`
-	Request      *GetServerTimeRequest `json:"request"`
-}
+	client := adv.NewClient(&adv.Credentials{}, http.Client{})
 
-func (c Client) GetServerTime(
-	ctx context.Context,
-	request *GetServerTimeRequest,
-) (*GetServerTimeResponse, error) {
+	candlesResponse, err := client.GetPublicProductCandles(ctx, &adv.GetPublicProductCandlesRequest{
+		ProductId:   "BTC-USD",
+		Granularity: "ONE_MINUTE",
+	})
 
-	path := fmt.Sprint("/brokerage/time")
-
-	response := &GetServerTimeResponse{Request: request}
-
-	if err := getPrivate(ctx, c, path, emptyQueryParams, request, response); err != nil {
-		return nil, err
+	if err != nil {
+		t.Fatal("failed to get public product candles:", err)
 	}
 
-	return response, nil
+	if candlesResponse == nil || len(*candlesResponse.Candles) == 0 {
+		t.Fatal("no candles found or nil response")
+	}
 }

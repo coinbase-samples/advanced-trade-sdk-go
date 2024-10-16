@@ -45,7 +45,7 @@ func (c Client) GetBestBidAsk(
 
 	response := &GetBestBidAskResponse{Request: request}
 
-	if err := get(ctx, c, path, queryParams, request, response); err != nil {
+	if err := getPrivate(ctx, c, path, queryParams, request, response); err != nil {
 		return nil, err
 	}
 

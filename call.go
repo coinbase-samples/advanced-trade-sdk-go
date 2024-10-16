@@ -94,10 +94,10 @@ func post(
 	request,
 	response interface{},
 ) error {
-	return call(ctx, client, path, query, http.MethodPost, http.StatusOK, request, response)
+	return callPrivate(ctx, client, path, query, http.MethodPost, http.StatusOK, request, response)
 }
 
-func get(
+func getPrivate(
 	ctx context.Context,
 	client Client,
 	path,
@@ -105,7 +105,18 @@ func get(
 	request,
 	response interface{},
 ) error {
-	return call(ctx, client, path, query, http.MethodGet, http.StatusOK, request, response)
+	return callPrivate(ctx, client, path, query, http.MethodGet, http.StatusOK, request, response)
+}
+
+func getPublic(
+	ctx context.Context,
+	client Client,
+	path,
+	query string,
+	request,
+	response interface{},
+) error {
+	return callPublic(ctx, client, path, query, http.MethodGet, http.StatusOK, request, response)
 }
 
 func put(
@@ -116,7 +127,7 @@ func put(
 	request,
 	response interface{},
 ) error {
-	return call(ctx, client, path, query, http.MethodPut, http.StatusOK, request, response)
+	return callPrivate(ctx, client, path, query, http.MethodPut, http.StatusOK, request, response)
 }
 
 func del(
@@ -127,7 +138,7 @@ func del(
 	request,
 	response interface{},
 ) error {
-	return call(ctx, client, path, query, http.MethodDelete, http.StatusOK, request, response)
+	return callPrivate(ctx, client, path, query, http.MethodDelete, http.StatusOK, request, response)
 }
 
 func call(
@@ -139,6 +150,7 @@ func call(
 	expectedHttpStatusCode int,
 	request,
 	response interface{},
+	isPublic bool,
 ) error {
 
 	if client.Credentials == nil {
@@ -160,6 +172,7 @@ func call(
 			expectedHttpStatusCode: expectedHttpStatusCode,
 			client:                 client,
 		},
+		isPublic,
 	)
 
 	if resp.err != nil {
@@ -173,10 +186,38 @@ func call(
 	return nil
 }
 
-func makeCall(ctx context.Context, request *apiRequest) *apiResponse {
+func callPublic(
+	ctx context.Context,
+	client Client,
+	path,
+	query,
+	httpMethod string,
+	expectedHttpStatusCode int,
+	request,
+	response interface{},
+) error {
+	return call(ctx, client, path, query, httpMethod, expectedHttpStatusCode, request, response, true)
+}
+
+func callPrivate(
+	ctx context.Context,
+	client Client,
+	path,
+	query,
+	httpMethod string,
+	expectedHttpStatusCode int,
+	request,
+	response interface{},
+) error {
+	return call(ctx, client, path, query, httpMethod, expectedHttpStatusCode, request, response, false)
+}
+
+func makeCall(ctx context.Context, request *apiRequest, isPublic bool) *apiResponse {
 	response := &apiResponse{
 		request: request,
 	}
+
+	var jwtToken string
 
 	callUrl := fmt.Sprintf("%s%s%s", request.client.HttpBaseUrl, request.path, request.query)
 	parsedUrl, err := url.Parse(callUrl)
@@ -185,10 +226,13 @@ func makeCall(ctx context.Context, request *apiRequest) *apiResponse {
 		return response
 	}
 
-	jwtToken, err := generateJwt(request.httpMethod, parsedUrl.Path, parsedUrl.Host, request.client.Credentials.AccessKey, request.client.Credentials.PrivatePemKey)
-	if err != nil {
-		response.err = fmt.Errorf("failed to generate JWT: %w", err)
-		return response
+	if !isPublic {
+		var err error
+		jwtToken, err = generateJwt(request.httpMethod, parsedUrl.Path, parsedUrl.Host, request.client.Credentials.AccessKey, request.client.Credentials.PrivatePemKey)
+		if err != nil {
+			response.err = fmt.Errorf("failed to generate JWT: %w", err)
+			return response
+		}
 	}
 
 	req, err := http.NewRequestWithContext(ctx, request.httpMethod, callUrl, bytes.NewReader(request.body))
@@ -198,8 +242,9 @@ func makeCall(ctx context.Context, request *apiRequest) *apiResponse {
 	}
 
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwtToken))
-
+	if !isPublic {
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwtToken))
+	}
 	res, err := request.client.HttpClient.Do(req)
 	if err != nil {
 		response.err = err
