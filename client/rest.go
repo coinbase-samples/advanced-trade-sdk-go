@@ -26,7 +26,7 @@ import (
 
 	"github.com/coinbase-samples/advanced-trade-sdk-go/credentials"
 	"github.com/coinbase-samples/core-go"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
