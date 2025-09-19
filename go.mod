@@ -1,10 +1,12 @@
 module github.com/coinbase-samples/advanced-trade-sdk-go
 
-go 1.19
+go 1.21
+
+toolchain go1.24.5
 
 require (
 	github.com/coinbase-samples/core-go v0.2.0
-	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
 )
 
