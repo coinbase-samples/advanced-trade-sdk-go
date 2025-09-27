@@ -54,7 +54,7 @@ func (s ordersServiceImpl) PreviewEditOrder(
 
 	response := &PreviewEditOrderResponse{Request: request}
 
-	if err := core.HttpGet(
+	if err := client.HttpGet(
 		ctx,
 		s.client,
 		path,

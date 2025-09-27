@@ -67,7 +67,7 @@ func (s ordersServiceImpl) ListFills(
 
 	response := &ListFillsResponse{Request: request}
 
-	if err := core.HttpGet(
+	if err := client.HttpGet(
 		ctx,
 		s.client,
 		path,

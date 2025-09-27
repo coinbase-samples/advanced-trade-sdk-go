@@ -59,7 +59,7 @@ func (s productsServiceImpl) GetMarketTrades(
 		queryParams = core.AppendHttpQueryParam(queryParams, "end", request.End)
 	}
 
-	if err := core.HttpGet(
+	if err := client.HttpGet(
 		ctx,
 		s.client,
 		path,

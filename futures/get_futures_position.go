@@ -43,7 +43,7 @@ func (s futuresServiceImpl) GetFuturesPosition(
 
 	response := &GetFuturesPositionResponse{Request: request}
 
-	if err := core.HttpGet(
+	if err := client.HttpGet(
 		ctx,
 		s.client,
 		path,

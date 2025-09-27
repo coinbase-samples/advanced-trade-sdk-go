@@ -46,7 +46,7 @@ func (s productsServiceImpl) AllocatePortfolio(
 
 	response := &AllocatePortfolioResponse{Request: request}
 
-	if err := core.HttpPost(
+	if err := client.HttpPost(
 		ctx,
 		s.client,
 		path,

@@ -43,7 +43,7 @@ func (s portfoliosServiceImpl) CreatePortfolio(
 
 	response := &CreatePortfolioResponse{Request: request}
 
-	if err := core.HttpPost(
+	if err := client.HttpPost(
 		ctx,
 		s.client,
 		path,

@@ -67,7 +67,7 @@ func (s publicServiceImpl) ListPublicProducts(
 
 	response := &ListPublicProductsResponse{Request: request}
 
-	if err := core.HttpGet(
+	if err := client.HttpGet(
 		ctx,
 		s.client,
 		path,
