@@ -43,7 +43,7 @@ func (s publicServiceImpl) GetServerTime(
 
 	response := &GetServerTimeResponse{Request: request}
 
-	if err := core.HttpGet(
+	if err := client.HttpGet(
 		ctx,
 		s.client,
 		path,

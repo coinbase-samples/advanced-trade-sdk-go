@@ -99,7 +99,7 @@ func (s ordersServiceImpl) ListOrders(
 
 	response := &ListOrdersResponse{Request: request}
 
-	if err := core.HttpGet(
+	if err := client.HttpGet(
 		ctx,
 		s.client,
 		path,

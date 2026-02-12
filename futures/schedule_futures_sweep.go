@@ -41,7 +41,7 @@ func (s futuresServiceImpl) ScheduleFuturesSweep(
 
 	response := &ScheduleFuturesSweepResponse{Request: request}
 
-	if err := core.HttpPost(
+	if err := client.HttpPost(
 		ctx,
 		s.client,
 		path,

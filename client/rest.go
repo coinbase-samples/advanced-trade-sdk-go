@@ -17,6 +17,7 @@
 package client
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -133,4 +134,54 @@ func generateJwt(method, path, host, keyName, privateKeyPEM string) string {
 
 func DefaultHttpClient() (http.Client, error) {
 	return core.DefaultHttpClient()
+}
+
+// HttpPost wraps core.HttpPost with error sanitization to handle HTML responses
+func HttpPost(
+	ctx context.Context,
+	client core.RestClient,
+	path string,
+	queryParams string,
+	successHttpStatusCodes []int,
+	request interface{},
+	response interface{},
+	headersFunc core.HttpHeaderFunc,
+) error {
+	err := core.HttpPost(
+		ctx,
+		client,
+		path,
+		queryParams,
+		successHttpStatusCodes,
+		request,
+		response,
+		headersFunc,
+	)
+
+	return SanitizeError(err)
+}
+
+// HttpGet wraps core.HttpGet with error sanitization to handle HTML responses
+func HttpGet(
+	ctx context.Context,
+	client core.RestClient,
+	path string,
+	queryParams string,
+	successHttpStatusCodes []int,
+	request interface{},
+	response interface{},
+	headersFunc core.HttpHeaderFunc,
+) error {
+	err := core.HttpGet(
+		ctx,
+		client,
+		path,
+		queryParams,
+		successHttpStatusCodes,
+		request,
+		response,
+		headersFunc,
+	)
+
+	return SanitizeError(err)
 }

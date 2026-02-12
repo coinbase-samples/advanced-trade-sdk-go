@@ -54,7 +54,7 @@ func (s productsServiceImpl) GetProductCandles(
 	queryParams = core.AppendHttpQueryParam(queryParams, "end", request.End)
 	queryParams = core.AppendHttpQueryParam(queryParams, "limit", request.Limit)
 
-	if err := core.HttpGet(
+	if err := client.HttpGet(
 		ctx,
 		s.client,
 		path,

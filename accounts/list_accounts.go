@@ -22,7 +22,6 @@ import (
 	"github.com/coinbase-samples/advanced-trade-sdk-go/client"
 	"github.com/coinbase-samples/advanced-trade-sdk-go/model"
 	"github.com/coinbase-samples/advanced-trade-sdk-go/utils"
-	"github.com/coinbase-samples/core-go"
 )
 
 type ListAccountsRequest struct {
@@ -48,7 +47,7 @@ func (s accountsServiceImpl) ListAccounts(
 
 	response := &ListAccountsResponse{Request: request}
 
-	if err := core.HttpGet(
+	if err := client.HttpGet(
 		ctx,
 		s.client,
 		path,

@@ -60,7 +60,7 @@ func (s publicServiceImpl) GetPublicMarketTrades(
 		queryParams = core.AppendHttpQueryParam(queryParams, "end", request.End)
 	}
 
-	if err := core.HttpGet(
+	if err := client.HttpGet(
 		ctx,
 		s.client,
 		path,

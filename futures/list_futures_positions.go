@@ -40,7 +40,7 @@ func (s futuresServiceImpl) ListFuturesPositions(
 
 	response := &ListFuturesPositionsResponse{Request: request}
 
-	if err := core.HttpGet(
+	if err := client.HttpGet(
 		ctx,
 		s.client,
 		path,
