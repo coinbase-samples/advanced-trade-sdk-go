@@ -26,7 +26,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/coinbase-samples/advanced-trade-sdk-go/credentials"
@@ -139,8 +138,6 @@ func generateJwt(method, path, host, keyName, privateKey string) (string, error)
 	return signedToken, nil
 }
 
-var ecdsaDeprecationOnce sync.Once
-
 // Two key types are supported:
 //   - ECDSA (P-256), signed with ES256. Provided as a PEM-encoded key
 //     ("-----BEGIN EC PRIVATE KEY-----" or a PKCS#8 "-----BEGIN PRIVATE KEY-----").
@@ -159,7 +156,6 @@ func parsePrivateKey(privateKey string) (any, jwt.SigningMethod, error) {
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to parse EC private key: %w", err)
 			}
-			warnEcdsaDeprecation()
 			return key, jwt.SigningMethodES256, nil
 		}
 
@@ -169,7 +165,6 @@ func parsePrivateKey(privateKey string) (any, jwt.SigningMethod, error) {
 		}
 		switch k := parsed.(type) {
 		case *ecdsa.PrivateKey:
-			warnEcdsaDeprecation()
 			return k, jwt.SigningMethodES256, nil
 		case ed25519.PrivateKey:
 			return k, jwt.SigningMethodEdDSA, nil
@@ -191,12 +186,6 @@ func parsePrivateKey(privateKey string) (any, jwt.SigningMethod, error) {
 	default:
 		return nil, nil, fmt.Errorf("ed25519 raw key must decode to %d or %d bytes, got %d", ed25519.SeedSize, ed25519.PrivateKeySize, len(raw))
 	}
-}
-
-func warnEcdsaDeprecation() {
-	ecdsaDeprecationOnce.Do(func() {
-		log.Println("warning: Ed25519 is the recommended CDP API key type. Consider switching to an Ed25519 key at https://portal.cdp.coinbase.com/")
-	})
 }
 
 func DefaultHttpClient() (http.Client, error) {
