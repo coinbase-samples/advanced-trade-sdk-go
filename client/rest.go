@@ -17,11 +17,15 @@
 package client
 
 import (
+	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/coinbase-samples/advanced-trade-sdk-go/credentials"
@@ -91,23 +95,26 @@ func AddAdvancedHttpHeaders(req *http.Request, path string, body []byte, cl core
 
 	c := cl.(*restClientImpl)
 
-	jwtToken := generateJwt(req.Method, path, req.Host, c.Credentials().AccessKey, c.Credentials().PrivatePemKey)
-
 	req.Header.Add("Accept", "application/json")
+	req.Header.Add("User-Agent", fmt.Sprintf("coinbase-advanced-go/%s", sdkVersion))
+
+	jwtToken, err := generateJwt(req.Method, path, req.Host, c.Credentials().AccessKey, c.Credentials().PrivatePemKey)
+	if err != nil {
+		// core-go's header hook can't return an error, so we can't abort the
+		// request from here. Log the cause and leave Authorization unset; the
+		// API rejects it with 401, which the caller gets as a normal error
+		// instead of the whole process being killed.
+		log.Printf("failed to generate JWT: %v", err)
+		return
+	}
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwtToken))
 
 }
 
-func generateJwt(method, path, host, keyName, privateKeyPEM string) string {
-	keyBytes := []byte(privateKeyPEM)
-	block, _ := pem.Decode(keyBytes)
-	if block == nil {
-		log.Fatal("failed to parse PEM block containing the key")
-	}
-
-	privateKey, err := x509.ParseECPrivateKey(block.Bytes)
+func generateJwt(method, path, host, keyName, privateKey string) (string, error) {
+	key, signingMethod, err := parsePrivateKey(privateKey)
 	if err != nil {
-		log.Fatalf("failed to parse EC private key: %v", err)
+		return "", fmt.Errorf("failed to parse private key: %w", err)
 	}
 
 	now := time.Now()
@@ -119,16 +126,66 @@ func generateJwt(method, path, host, keyName, privateKeyPEM string) string {
 		"uri": fmt.Sprintf("%s %s%s", method, host, path),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token := jwt.NewWithClaims(signingMethod, claims)
 	token.Header["kid"] = keyName
 	token.Header["nonce"] = uuid.New().String()
 
-	signedToken, err := token.SignedString(privateKey)
+	signedToken, err := token.SignedString(key)
 	if err != nil {
-		log.Fatalf("failed to sign token: %v", err)
+		return "", fmt.Errorf("failed to sign token: %w", err)
 	}
 
-	return signedToken
+	return signedToken, nil
+}
+
+// Two key types are supported:
+//   - ECDSA (P-256), signed with ES256. Provided as a PEM-encoded key
+//     ("-----BEGIN EC PRIVATE KEY-----" or a PKCS#8 "-----BEGIN PRIVATE KEY-----").
+//   - Ed25519, signed with EdDSA. Provided either as a PKCS#8 PEM key or as a
+//     base64-encoded raw key (32-byte seed or 64-byte seed+public key), which is
+//     how the CDP portal hands out Ed25519 secrets.
+func parsePrivateKey(privateKey string) (any, jwt.SigningMethod, error) {
+	if strings.HasPrefix(strings.TrimSpace(privateKey), "-----BEGIN") {
+		block, _ := pem.Decode([]byte(privateKey))
+		if block == nil {
+			return nil, nil, fmt.Errorf("failed to decode PEM block containing the private key")
+		}
+
+		if block.Type == "EC PRIVATE KEY" {
+			key, err := x509.ParseECPrivateKey(block.Bytes)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to parse EC private key: %w", err)
+			}
+			return key, jwt.SigningMethodES256, nil
+		}
+
+		parsed, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to parse PKCS#8 private key: %w", err)
+		}
+		switch k := parsed.(type) {
+		case *ecdsa.PrivateKey:
+			return k, jwt.SigningMethodES256, nil
+		case ed25519.PrivateKey:
+			return k, jwt.SigningMethodEdDSA, nil
+		default:
+			return nil, nil, fmt.Errorf("unsupported private key type %T; expected ECDSA (P-256) or Ed25519", parsed)
+		}
+	}
+
+	// Not PEM: treat the secret as a base64-encoded raw Ed25519 key. Strip any
+	raw, err := base64.StdEncoding.DecodeString(strings.Join(strings.Fields(privateKey), ""))
+	if err != nil {
+		return nil, nil, fmt.Errorf("private key is neither PEM nor valid base64: %w", err)
+	}
+	switch len(raw) {
+	case ed25519.SeedSize:
+		return ed25519.NewKeyFromSeed(raw), jwt.SigningMethodEdDSA, nil
+	case ed25519.PrivateKeySize:
+		return ed25519.PrivateKey(raw), jwt.SigningMethodEdDSA, nil
+	default:
+		return nil, nil, fmt.Errorf("ed25519 raw key must decode to %d or %d bytes, got %d", ed25519.SeedSize, ed25519.PrivateKeySize, len(raw))
+	}
 }
 
 func DefaultHttpClient() (http.Client, error) {
