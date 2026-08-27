@@ -17,10 +17,21 @@
 package futures
 
 import (
+	"context"
+
 	"github.com/coinbase-samples/advanced-trade-sdk-go/client"
 )
 
 type FuturesService interface {
+	GetFuturesBalanceSummary(ctx context.Context, request *GetFuturesBalanceSummaryRequest) (*GetFuturesBalanceSummaryResponse, error)
+	GetFuturesPosition(ctx context.Context, request *GetFuturesPositionRequest) (*GetFuturesPositionResponse, error)
+	ListFuturesPositions(ctx context.Context, request *ListFuturesPositionsRequest) (*ListFuturesPositionsResponse, error)
+	ListFuturesSweeps(ctx context.Context, request *ListFuturesSweepsRequest) (*ListFuturesSweepsResponse, error)
+	ScheduleFuturesSweep(ctx context.Context, request *ScheduleFuturesSweepRequest) (*ScheduleFuturesSweepResponse, error)
+	CancelPendingFuturesSweeps(ctx context.Context, request *CancelPendingFuturesSweepsRequest) (*CancelPendingFuturesSweepsResponse, error)
+	GetCurrentMarginWindow(ctx context.Context, request *GetCurrentMarginWindowRequest) (*GetCurrentMarginWindowResponse, error)
+	GetIntradayMarginSetting(ctx context.Context, request *GetIntradayMarginSettingRequest) (*GetIntradayMarginSettingResponse, error)
+	SetIntradayMarginSetting(ctx context.Context, request *SetIntradayMarginSettingRequest) (*SetIntradayMarginSettingResponse, error)
 }
 
 func NewFuturesService(c client.RestClient) FuturesService {

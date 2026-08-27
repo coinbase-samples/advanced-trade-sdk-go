@@ -190,7 +190,7 @@ type Trade struct {
 }
 
 type SessionDetails struct {
-	IsSessionOpen string `json:"is_session_open"`
+	IsSessionOpen bool `json:"is_session_open"`
 	OpenTime      string `json:"open_time"`
 	CloseTime     string `json:"close_time"`
 }
